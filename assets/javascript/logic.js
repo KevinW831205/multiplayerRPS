@@ -38,13 +38,16 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 var main = {
+    username: "",
     playing: false,
     playingAs: "",
     opponent: "",
     sessionkey: "",
-    win: 0,
-    loss: 0,
-    tie: 0,
+    stats: {
+        win: 0,
+        loss: 0,
+        tie: 0,
+    },
 
     createReadyBtn: function (appendLocation) {
         //after clicking start button have a ready button, both players must ready to play. 
@@ -79,6 +82,7 @@ var main = {
         var startBtn = $("<button>");
         var selected;
         playerid = appendLocation.attr("data-player");
+        startBtn.addClass("startBtn")
         startBtn.attr("id", playerid + "startBtn");
         startBtn.text("Play as " + playerid)
         $(appendLocation).append(startBtn);
@@ -93,7 +97,8 @@ var main = {
                     main.opponent = "player1"
                 }
 
-
+                $(this).hide()
+                database.ref("/players/" + main.playingAs).child("playerName").set(main.username)
                 database.ref("/players/" + main.playingAs).child("selected").set(true)
                 main.playing = true;
 
@@ -103,12 +108,24 @@ var main = {
                 //create ready button and modify opponents playBox display
                 main.createReadyBtn($("#" + main.playingAs + "Box"))
 
-                //currently opponent display only at empty
-                $("#" + main.opponent + "Box").empty()
+                //Change opponent display
+                $("#" + main.opponent + "startBtn").attr("disabled", true)
+                var opponentText = $("<h3>").text("waiting on opponent")
+                opponentText.addClass("opponentText")
+                $("#" + main.opponent + "Box").append(opponentText)
+
             }
         });
     },
 
+    nameChange: function () {
+        var newName = $("#nameInput").val()
+        $("#nameInput").val("")
+        localStorage.setItem("username", newName)
+        main.username = newName;
+        $("#userName").text(main.username);
+
+    }
 
 }
 
@@ -137,25 +154,30 @@ var game = {
         //initiate game and generate game window wtih choices
         var rock = $("<button>").text("rock");
         rock.addClass("choiceBtn");
-        rock.attr("data-choice", "r");
+        rock.attr("data-choice", "rock");
         var paper = $("<button>").text("paper");
         paper.addClass("choiceBtn");
-        paper.attr("data-choice", "p");
+        paper.attr("data-choice", "paper");
 
         var scissor = $("<button>").text("scissor");
         scissor.addClass("choiceBtn");
-        scissor.attr("data-choice", "s");
+        scissor.attr("data-choice", "scissor");
 
         var confirmBtn = $("<button>").text("confirm")
         confirmBtn.addClass("confirmBtn");
 
+        var newP = $("<p>").addClass("confirmText");
+
+
         gameWindow.empty();
         gameWindow.append(rock, paper, scissor)
+
 
         $(".choiceBtn").on("click", function () {
             //When choice is chosen ask for confirm
             database.ref("/players/" + main.playingAs).child("choice").set($(this).attr("data-choice"));
-            gameWindow.append("You Chosen " + $(this).text())
+            newP.text("You Chosen " + $(this).text())
+            gameWindow.append(newP)
             gameWindow.append(confirmBtn)
 
         });
@@ -170,36 +192,51 @@ var game = {
 
     winCheck(p1c, p2c) {
         //RPS logic
+        var resultText = $("<p>").addClass("resultText")
         if (p1c === p2c) {
-            main.tie++;
-            $("#" + main.playingAs + "Box").append("tie")
+            main.stats.tie++;
+            resultText.text("Your Opponent Choose " + p1c + " Tie")
+            $("#" + main.playingAs + "Box").append(resultText)
 
         }
-        else if ((p1c === "r" && p2c === "s") || (p1c === "s" && p2c === "p") || (p1c === "p" && p2c === "r")) {
+        else if ((p1c === "rock" && p2c === "scissor") || (p1c === "scissor" && p2c === "paper") || (p1c === "paper" && p2c === "rock")) {
             if (main.playingAs === "player1") {
-                main.win++
-                $("#" + main.playingAs + "Box").append("win")
+                main.stats.win++;
+                resultText.text("Your Opponent Choose " + p2c + " Win")
+                $("#" + main.playingAs + "Box").append(resultText)
 
             } else {
-                main.loss++
-                $("#" + main.playingAs + "Box").append("loss")
+                main.stats.loss++;
+                resultText.text("Your Opponent Choose " + p2c + " Lose")
+                $("#" + main.playingAs + "Box").append(resultText)
 
             }
 
         }
         else {
             if (main.playingAs === "player2") {
-                main.win++
-                $("#" + main.playingAs + "Box").append("win")
+                main.stats.win++;
+                resultText.text("Your Opponent Choose " + p1c + " Win")
+                $("#" + main.playingAs + "Box").append(resultText)
 
             } else {
-                main.loss++
-                $("#" + main.playingAs + "Box").append("loss")
+                main.stats.loss++;
+                resultText.text("Your Opponent Choose " + p1c + " Lose")
+                $("#" + main.playingAs + "Box").append(resultText)
             }
         }
-        //start resetting game
+        //start resetting game and update stats
+        game.statsUpdate();
         database.ref("/players/" + main.playingAs).child("confirm").set(false);
         setTimeout(game.reset, 5000)
+    },
+
+
+    statsUpdate: function () {
+        $("#winCount").text(main.stats.win)
+        $("#lossCount").text(main.stats.loss)
+        $("#tieCount").text(main.stats.tie)
+        localStorage.setItem("stats", JSON.stringify(main.stats))
     },
 
     reset: function () {
@@ -218,8 +255,8 @@ var game = {
 
 var chat = {
     submit: function () {
-        inputText = $("#chatInput").val()+"<br>"
-        database.ref("/chat").push(inputText);
+        inputText = $("#chatInput").val()
+        database.ref("/chat").push(main.username + ": " + inputText);
         $("#chatInput").val("")
     }
 }
@@ -240,6 +277,20 @@ var chat = {
 
 
 $(document).ready(function () {
+    if (localStorage.getItem("username") == null) {
+        localStorage.setItem("username", "randomUser")
+    } else {
+        main.username = localStorage.getItem("username");
+        $("#userName").text(main.username);
+
+    }
+
+    if (localStorage.getItem("stats") !== null) {
+        main.stats = JSON.parse(localStorage.getItem("stats"));
+        console.log(localStorage.getItem("stats"))
+        game.statsUpdate();
+    }
+
 
     var connectedRef = database.ref(".info/connected");
     var connectionsRef = database.ref("/connections");
@@ -285,12 +336,12 @@ $(document).ready(function () {
 
         if (p1state.selected) {
             $("#player1startBtn").attr("disabled", true)
-            $("#player1startBtn").text("Player1 is being played")
+            $("#player1startBtn").text("Player1 is played by " + p1state.playerName)
 
         }
         if (p2state.selected) {
             $("#player2startBtn").attr("disabled", true)
-            $("#player2startBtn").text("Player2 is being played")
+            $("#player2startBtn").text("Player2 is played by " + p2state.playerName)
 
         }
     })
@@ -299,27 +350,43 @@ $(document).ready(function () {
         if (snapshot.val().initiated) {
             if (main.playing) {
                 game.start($("#" + main.playingAs + "Box"))
-
             } else {
-                game.start($("#player1Box"));
-                game.start($("#player2Box"));
             }
         }
     })
 
+    database.ref("/game").child("initiated").on("value", function (snapshot) {
+        // disconnect and game began
+        if (!snapshot.val()) {
+            $(".playerBox").empty()
+            main.createStartBtn($("#player1Box"));
+            main.createStartBtn($("#player2Box"));
+        }
+    })
+
+
     database.ref("/chat").on("child_added", function (snapshot) {
-        $("#chatLog").append(snapshot.val())
+        var textlog = $("<p>").text(snapshot.val())
+        $("#chatLog").append(textlog)
     });
 
 
     $("#chatSubmit").on("click", function (event) {
         event.preventDefault();
-        console.log(1);
         chat.submit();
     })
 
+    $("#nameSubmit").on("click", function (event) {
+        event.preventDefault();
+        main.nameChange();
+    })
+
+
     main.createStartBtn($("#player1Box"));
     main.createStartBtn($("#player2Box"));
+
+
+
 
 
     // $(document).on("click","#player1startBtn", function () {

@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <title>multiplayerRPS</title>
     <link rel="stylesheet" type="text/css" href="assets/css/reset.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"> -->
     <link rel="stylesheet" type="text/css" href="assets/css/style.css">
     <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
     <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
@@ -17,11 +17,19 @@
 
 <body>
     <div class="playArea">
-        <div class="playerBox" id="player1Box" data-player="player1">
-        </div>
+        <div class="playerBox" id="player1Box" data-player="player1"></div>
+        <div class="playerBox" id="player2Box" data-player="player2"></div>
 
-        <div class="playerBox" id="player2Box" data-player="player2">
-        </div>
+    </div>
+    <div id="profile">
+        <h1>User: <span id="userName">randomUser</span></h1>
+        <form id="nameChange">
+            <input type="text" id="nameInput">
+            <button id="nameSubmit">Change Name</button>
+        </form>
+        <p>Wins: <span id="winCount">0</span></p>
+        <p>Losses: <span id="lossCount">0</span></p>
+        <p>Ties: <span id="tieCount">0</span></p>
 
     </div>
 

@@ -1,3 +1,4 @@
+
 .playerBox{
     margin:30px;
     border-style: solid;
@@ -17,7 +18,8 @@
 
 .playArea{
     width:1200px;
-    height:50px;
+    height:600px;
+
 }
 
 #chatLog{
@@ -42,4 +44,57 @@
 
 #chatContainer{
     width:600px;
+    position: absolute;
+    bottom: 0px;
+    margin-left:30px;
+    margin-bottom:20px;
+    font-size: 24px
+}
+
+.startBtn{
+    height: 100px;
+    width:100%;
+    margin-top: 200px;
+    font-size: 36px
+
+}
+
+.readyBtn{
+    width: 100%;
+    margin-top:200px;
+    height:100px;
+    font-size: 36px
+
+}
+
+.opponentText{
+    font-size: 36px;
+    text-align: center;
+}
+
+.choiceBtn{
+    font-size: 36px;
+    height:100px;
+    width:25%;
+    margin:20px;
+}
+
+#profile{
+    position: absolute;
+    top:30px;
+    right:0px;
+    width:300px;
+    font-size: 24px;
+}
+
+.confirmBtn{
+    font-size: 24px;
+}
+
+.confirmText{
+    font-size: 24px;
+}
+
+.resultText{
+    font-size: 24px;
 }
