@@ -1,0 +1,42 @@
+<!--
+    UpennLPS HW7 Firebase Project
+    Author: Kevin Wang
+    Date due: 2019/03/09
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <title>multiplayerRPS</title>
+    <link rel="stylesheet" type="text/css" href="assets/css/reset.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+    <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+
+</head>
+
+<body>
+    <div class="playArea">
+        <div class="playerBox" id="player1Box" data-player="player1">
+        </div>
+
+        <div class="playerBox" id="player2Box" data-player="player2">
+        </div>
+
+    </div>
+
+    <div id=chatContainer>
+        <h3>Chat Log</h3>
+        <div id="chatLog"></div>
+        <form id="chatForm">
+            <input type="text" id="chatInput">
+            <button id="chatSubmit">Enter</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase.js"></script>
+    <script type="text/javascript" src="assets/javascript/logic.js"></script>
+
+</body>

@@ -1,0 +1,45 @@
+.playerBox{
+    margin:30px;
+    border-style: solid;
+    border-color: black;
+    border-width: 1px;
+    width:500px;
+    height: 500px;
+}
+
+#player1box{
+    float:left;
+}
+
+#player2Box{
+    float:right;
+}
+
+.playArea{
+    width:1200px;
+    height:50px;
+}
+
+#chatLog{
+    border-style: solid;
+    border-width:1px;
+    border-color: black;
+    height:300px;
+    width:600px;
+}
+
+#chatForm{
+    width:600px;
+}
+
+#chatSubmit{
+    width:50px;
+}
+
+#chatInput{
+    width:500px
+}
+
+#chatContainer{
+    width:600px;
+}
