@@ -1,6 +1,5 @@
 /*
     LOGIC
-
     player1 slot , player2 slot
     one user clicks player slot
     stops other user from clicking
@@ -38,11 +37,12 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 var main = {
+    // some gobal variables
     username: "",
-    playing: false,
-    playingAs: "",
-    opponent: "",
-    sessionkey: "",
+    playing: false,     //if the user is playing  
+    playingAs: "",      //player1 or player2
+    opponent: "",       //if playing opponent
+    sessionkey: "",     //not quite used yet
     stats: {
         win: 0,
         loss: 0,
@@ -55,8 +55,8 @@ var main = {
         var readyBtn = $("<button>").text("ready");
         readyBtn.addClass("readyBtn")
         $(appendLocation).append(readyBtn);
-
         $(appendLocation).on("click", ".readyBtn", function () {
+            //disabling button to prevent multiple clicks and change some values on firebase
             $(this).attr("disabled", true);
             database.ref("/players/" + main.playingAs).child("ready").set(true)
             database.ref("/players/" + main.playingAs).child("ready").onDisconnect().set(false)
@@ -78,7 +78,7 @@ var main = {
     },
 
     createStartBtn: function (appendLocation) {
-
+        //create start button user click to play and assign it's event listners
         var startBtn = $("<button>");
         var selected;
         playerid = appendLocation.attr("data-player");
@@ -87,9 +87,9 @@ var main = {
         startBtn.text("Play as " + playerid)
         $(appendLocation).append(startBtn);
         $(appendLocation).on("click", "#" + playerid + "startBtn", function () {
-
-
+            //only allow to play if not already playing and the player window hasn't been selected by other people
             if (!main.playing && !selected) {
+                //assigning playwindow and your opponent
                 main.playingAs = $(this).parent().attr("data-player");
                 if (main.playingAs === "player1") {
                     main.opponent = "player2";
@@ -97,6 +97,7 @@ var main = {
                     main.opponent = "player1"
                 }
 
+                //changing game window and some firebase properties
                 $(this).hide()
                 database.ref("/players/" + main.playingAs).child("playerName").set(main.username)
                 database.ref("/players/" + main.playingAs).child("selected").set(true)
@@ -119,6 +120,7 @@ var main = {
     },
 
     nameChange: function () {
+        //function to change user name
         var newName = $("#nameInput").val()
         $("#nameInput").val("")
         localStorage.setItem("username", newName)
@@ -233,6 +235,7 @@ var game = {
 
 
     statsUpdate: function () {
+        //update stats and store locally
         $("#winCount").text(main.stats.win)
         $("#lossCount").text(main.stats.loss)
         $("#tieCount").text(main.stats.tie)
@@ -240,6 +243,7 @@ var game = {
     },
 
     reset: function () {
+        //reset game
         $(".playerBox").empty()
         main.playingAs = "";
         main.playing = false;
@@ -254,6 +258,7 @@ var game = {
 }
 
 var chat = {
+    // chatting functions
     submit: function () {
         inputText = $("#chatInput").val()
         database.ref("/chat").push(main.username + ": " + inputText);
@@ -277,6 +282,7 @@ var chat = {
 
 
 $(document).ready(function () {
+    //grabbing some values from local storage, username and stats
     if (localStorage.getItem("username") == null) {
         localStorage.setItem("username", "randomUser")
     } else {
@@ -291,7 +297,7 @@ $(document).ready(function () {
         game.statsUpdate();
     }
 
-
+    //connections on database
     var connectedRef = database.ref(".info/connected");
     var connectionsRef = database.ref("/connections");
 
@@ -313,14 +319,17 @@ $(document).ready(function () {
     connectionsRef.on("value", function (snapshot) {
         // Display the viewer count in the html.
         // The number of online users is the number of children in the connections list.
-        console.log(snapshot.numChildren());
+        // console.log(snapshot.numChildren());
     });
 
     database.ref("/players").on("value", function (snapshot) {
+        //changes to player status values: player selected, ready choice etc. and store the status values
         var p1state
         var p2state
         p1state = snapshot.val().player1
         p2state = snapshot.val().player2
+
+        //if both player are ready initiate game
         if (p1state.ready && p2state.ready) {
             database.ref("/game").child("initiated").set(true);
             game.initiated = true;
@@ -328,12 +337,15 @@ $(document).ready(function () {
             database.ref("/game").child("initiated").set(false);
         }
 
+
         database.ref("/game").child("initiated").once("value").then(function (snapshot) {
+        //when player confirm their choices in the game check if both player confirmed to initiate win check
             if (p1state.confirm && p2state.confirm && snapshot.val()) {
                 game.winCheck(p1state.choice, p2state.choice)
             }
         })
 
+        //disabling start button for other people if player is playing
         if (p1state.selected) {
             $("#player1startBtn").attr("disabled", true)
             $("#player1startBtn").text("Player1 is played by " + p1state.playerName)
@@ -347,6 +359,7 @@ $(document).ready(function () {
     })
 
     database.ref("/game").on("value", function (snapshot) {
+        //if game started and player on disconnect will restart the player selection
         if (snapshot.val().initiated) {
             if (main.playing) {
                 game.start($("#" + main.playingAs + "Box"))
@@ -366,11 +379,12 @@ $(document).ready(function () {
 
 
     database.ref("/chat").on("child_added", function (snapshot) {
+        //chat box
         var textlog = $("<p>").text(snapshot.val())
         $("#chatLog").append(textlog)
     });
 
-
+    //name change and check box
     $("#chatSubmit").on("click", function (event) {
         event.preventDefault();
         chat.submit();
@@ -381,11 +395,8 @@ $(document).ready(function () {
         main.nameChange();
     })
 
-
-    main.createStartBtn($("#player1Box"));
-    main.createStartBtn($("#player2Box"));
-
-
+    //initial start of game
+    main.reset();
 
 
 
